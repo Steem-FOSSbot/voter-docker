@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# Copyright Steem FOSSbot under GNU GLP v3
+#
+#
 # voter-docker
 # A docker deployment management script for SteemFOSSbot Voter,
 # based completely on @shaunmza 's tutorial post:
@@ -7,13 +10,18 @@
 #
 # Script and support written by thrize AKA @personz
 #
-# This script structure copied from steem-docker run.sh script by
-# @someguy123, available at https://github.com/Someguy123/steem-docker
 #
-
+# Code modified from steem-docker on 4th March 2017, originally copyright Someguy123
+#
+# Original copyright message reads:
+# Steem node manager
+# Released under GNU AGPL by Someguy123
+#
+# ----------------------------------------
+#
 # DEVELOPMENT VERSION
 #
-# Note this should be called
+# Note this should be executed
 # git submodule add -b docker-develop https://github.com/Steem-FOSSbot/steem-fossbot-voter.git
 
 
@@ -32,11 +40,12 @@ help() {
     echo $CYAN"Usage: $0 COMMAND"
     echo
     echo $CYAN"Commands: "
-    echo $CYAN"    setup - first time set up"
-    echo $CYAN"    build - (re)builds docker"
-    echo $CYAN"    start - starts Voter in docker container"
+    echo $CYAN"    setup   - first time set up"
+    echo $YELLOW"            must run setup as root, e.g. with sudo"
+    echo $CYAN"    build   - (re)builds docker"
+    echo $CYAN"    start   - starts Voter in docker container"
     echo $CYAN"    bgstart - starts Voter in docker container in background process"
-    echo $CYAN"    stop - stops docker container"
+    echo $CYAN"    bgstop  - stops docker container if started with bgstart"
     echo $RESET
     exit
 }
@@ -172,16 +181,16 @@ bgstart() {
     echo $RESET
 }
 
-stop() {
+bgstop() {
     if [ "$EUID" -ne 0 ]
       then
-      echo $GREEN"-= Stop =-"
+      echo $GREEN"-= Background Stop =-"
     else
       echo "Do not run as root, don't use sudo or su"
       echo $RESET
       exit
     fi
-	echo $RED"Stop command is not implemented yet"
+	echo $RED"bgstop command is not implemented yet!"
   # TODO : shaunmza, can you figure this out?
   echo $RESET
 }
@@ -204,8 +213,8 @@ case $1 in
     bgstart)
         bgstart
         ;;
-    stop)
-        stop
+    bgstop)
+        bgstop
         ;;
     *)
         echo "Invalid cmd"
