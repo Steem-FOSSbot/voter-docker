@@ -111,9 +111,14 @@ setup() {
 	echo
 	chmod +x ./steem-fossbot-voter/docker-config.sh
 	chmod 755 ./steem-fossbot-voter/docker-config.sh
-    cd steem-fossbot-voter 
+  cd steem-fossbot-voter 
+  echo $RESET
 	./docker-config.sh
-    cd ..
+  cd ..
+  echo $GREEN"Voter docker config finished!"
+  echo
+  echo $CYAN"Please run ./run.sh build to create Docker deployment from set up files"
+  echo $RESET
 }
 
 build() {
@@ -129,8 +134,9 @@ build() {
       echo $RED"docker-compose is not installed"
       echo $YELLOW"install docker-compose and then start again"
     fi
+    echo $RESET
 	  docker-compose build
-    echo $GREEN"Voter is now bulid as a Docker deployment"
+    echo $GREEN"Assuming no errors, Voter is now bulid as a Docker deployment"
     echo $CYAN"Use the start or bgstart commands to start the container"
     echo $RESET
     exit
@@ -175,6 +181,7 @@ bgstart() {
       echo $RESET
       exit
     fi
+    echo $RESET
     nohup docker-compose up > /dev/null 2>&1 &
     echo
     echo $GREEN"Go to http://127.0.0.1:5000 with your browser to view the dashboard"

@@ -38,7 +38,9 @@ _Regardless of how you installed the software._
 
 Use the ```run.sh``` script for all operations. To run this in a terminal, navigate to the project folder, and type ```./run.sh COMMAND```, where ```COMMAND``` is one of the commands provided.
 
-Command overview:
+You should run setup and build first.
+
+Note that build, start, bgstart and bgstop commands all require that Docker (i.e. the Docker daemon) is started and running.
 
 ### ./run.sh **setup**
 
