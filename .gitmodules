@@ -1,0 +1,4 @@
+[submodule "steem-fossbot-voter"]
+	path = steem-fossbot-voter
+	url = https://github.com/Steem-FOSSbot/steem-fossbot-voter.git
+	branch = docker-develop
