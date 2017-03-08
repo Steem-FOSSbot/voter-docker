@@ -57,54 +57,52 @@ setup() {
 	  exit
 	fi
 	if ! git_loc="$(type -p "git")" || [ -z "$git_loc" ]; then
-      echo $YELLOW"git not available, setup is still possible but updates are not"
-      echo
-      echo $YELLOW"To allow for automatic updating, please install git"
-  else
-    git submodule init
-    # if submodule repo already exists, make sure to stash any previous changes
-    if [ -d "steem-fossbot-voter" ]; then
-    	# check that user wants to continue to wipe any changes made to repo and update submodule
-    	echo
-    	echo $YELLOW"Continuing will remove any --code-- changes you made to the local copy of Voter"
-    	echo $YELLOW"  NOTE that this does not include your algorithm or config, code changes only"
-    	echo
-    	echo $YELLOW"For normal usage this is safe"
-    	while true; do
-            echo -n $CYAN"Continue? (Y/n):"
-	    	read steemusername
-
-    		if [[ -z "$steemusername" ]]
-            then
-                echo $RED"Please answer the question"
-                echo
-            else
-    			if [[ $steemusername == "n" ]]
-    			then
-    				echo
-    				echo $YELLOW"Please do something with your changes, such as stashing them,"
-    				echo $YELLOW"and then start config again"
-            echo $RESET
-    				exit
-    			fi
-                if [[ $steemusername == "Y" ]]
-                then
-                    break
-                fi
-                echo $RED"Please answer the question"
-                echo
-    		fi
-    	done
-    	cd steem-fossbot-voter
-    	git reset --hard
-    	cd ..
-    	echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
-    	# update everything
-      git submodule update --remote
-    else
-      git submodule update --remote
-    fi
+      echo $RED"git not available, setup cannot run!"
+      echo $YELLOW"Please install git"
+      echo $RESET
+      exit
   fi
+  git submodule init
+  # if submodule repo already exists, make sure to stash any previous changes
+  if [ -d "steem-fossbot-voter" ]; then
+  	# check that user wants to continue to wipe any changes made to repo and update submodule
+  	echo
+  	echo $YELLOW"Continuing will remove any --code-- changes you made to the local copy of Voter"
+  	echo $YELLOW"  NOTE that this does not include your algorithm or config, code changes only"
+  	echo
+  	echo $YELLOW"For normal usage this is safe"
+  	while true; do
+          echo -n $CYAN"Continue? (Y/n):"
+    	read steemusername
+
+  		if [[ -z "$steemusername" ]]
+          then
+              echo $RED"Please answer the question"
+              echo
+          else
+  			if [[ $steemusername == "n" ]]
+  			then
+  				echo
+  				echo $YELLOW"Please do something with your changes, such as stashing them,"
+  				echo $YELLOW"and then start config again"
+          echo $RESET
+  				exit
+  			fi
+              if [[ $steemusername == "Y" ]]
+              then
+                  break
+              fi
+              echo $RED"Please answer the question"
+              echo
+  		fi
+  	done
+  	cd steem-fossbot-voter
+  	git reset --hard
+  	cd ..
+  	echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
+  fi
+  # update everything
+  git submodule update --remote
   echo
 	echo $GREEN"Running Voter docker config..."
 	echo
