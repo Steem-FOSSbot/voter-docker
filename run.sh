@@ -61,9 +61,6 @@ setup() {
       echo
       echo $YELLOW"To allow for automatic updating, please install git"
   else
-    git submodule init
-    git submodule update
-    
     # if submodule repo already exists, make sure to stash any previous changes
     if [ -d "steem-fossbot-voter" ]; then
     	# check that user wants to continue to wipe any changes made to repo and update submodule
@@ -99,11 +96,13 @@ setup() {
     	done
     	cd steem-fossbot-voter
     	git reset --hard
-    	# TODO : change this branch to docker-master for release
-    	git pull origin docker-develop
     	cd ..
     	echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
-    	# update everything first
+    	# update everything
+      git submodule update --remote
+    else
+      git submodule init
+      git submodule update --remote
     fi
   fi
   echo
