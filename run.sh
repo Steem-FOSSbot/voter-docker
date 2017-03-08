@@ -73,46 +73,64 @@ setup() {
   git submodule init
   # if submodule repo already exists, make sure to stash any previous changes
   if [ -d "steem-fossbot-voter" ]; then
-  	# check that user wants to continue to wipe any changes made to repo and update submodule
-  	echo
-  	echo $YELLOW"Continuing will remove any --code-- changes you made to the local copy of Voter"
-  	echo $YELLOW"  NOTE that this does not include your algorithm or config, code changes only"
-  	echo
-  	echo $YELLOW"For normal usage this is safe"
-  	while true; do
-      echo -n $CYAN"Continue? (Y/n):"
-    	read answer
+    cd steem-fossbot-voter
+    fileexists="n"
+    # check previous setup files exist
+    if [ -e "Dockerfile" ]; then
+      fileexists="Y"
+    fi
+    if [ -e "bot.sh" ]; then
+      fileexists="Y"
+    fi
+    if [ -e "crontab" ]; then
+      fileexists="Y"
+    fi
+    if [[ $fileexists == "Y" ]]
+    then
+    	# check that user wants to continue to wipe any changes made to repo and update submodule
+    	echo
+    	echo $YELLOW"Continuing will remove any --code-- changes you made to the local copy of Voter"
+    	echo $YELLOW"  NOTE that this does not include your algorithm or config, code changes only"
+    	echo
+    	echo $YELLOW"For normal usage this is safe"
+    	while true; do
+        echo -n $CYAN"Continue? (Y/n):"
+      	read answer
 
-  		if [[ -z "$answer" ]]
+    		if [[ -z "$answer" ]]
+            then
+                echo $RED"Please answer the question"
+                echo
+            else
+    			if [[ $answer == "n" ]]
+    			then
+    				echo
+    				echo $YELLOW"Please do something with your changes, such as stashing them,"
+    				echo $YELLOW"and then start config again"
+            echo $RESET
+            cd ..
+    				exit
+    			fi
+          if [[ $answer == "Y" ]]
           then
-              echo $RED"Please answer the question"
-              echo
-          else
-  			if [[ $answer == "n" ]]
-  			then
-  				echo
-  				echo $YELLOW"Please do something with your changes, such as stashing them,"
-  				echo $YELLOW"and then start config again"
-          echo $RESET
-  				exit
-  			fi
-              if [[ $answer == "Y" ]]
-              then
-                  break
-              fi
-              echo $RED"Please answer the question"
-              echo
-  		fi
-  	done
-  	cd steem-fossbot-voter
-    echo $YELLOW
-    rm Dockerfile
-    rm bot.sh
-    rm crontab
+              echo $YELLOW
+              rm Dockerfile
+              rm bot.sh
+              rm crontab
+              break
+          fi
+          echo $RED"Please answer the question"
+          echo
+    		fi
+    	done
+    fi
+    echo $GREEN"Updating Voter code..."
     echo $CYAN
-  	git reset --hard
-  	cd ..
-  	echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
+    git reset --hard
+    echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
+    cd ..
+  else
+    echo $GREEN"Updating Voter code..."
   fi
   # update everything
   git submodule update --remote
@@ -263,7 +281,7 @@ update() {
 build() {
     if [ "$EUID" -ne 0 ]
       then
-      echo $GREEN"-= Build =-"
+      echo $GREEN"Build..."
     else
       echo $RED"Do not run as root, don't use sudo or su"
       echo $RESET
@@ -284,7 +302,7 @@ build() {
 start() {
     if [ "$EUID" -ne 0 ]
       then
-      echo $GREEN"-= Start =-"
+      echo $GREEN"Start..."
     else
       echo $RED"Do not run as root, don't use sudo or su"
       echo $RESET
@@ -310,7 +328,7 @@ start() {
 bgstart() {
     if [ "$EUID" -ne 0 ]
       then
-      echo $GREEN"-= Background Start =-"
+      echo $GREEN"Background start..."
     else
       echo $RED"Do not run as root, don't use sudo or su"
       echo $RESET
@@ -334,7 +352,7 @@ bgstart() {
 bgstop() {
     if [ "$EUID" -ne 0 ]
       then
-      echo $GREEN"-= Background Stop =-"
+      echo $GREEN"Background stop..."
     else
       echo "Do not run as root, don't use sudo or su"
       echo $RESET
@@ -351,7 +369,7 @@ bgstop() {
 logs() {
   if [ "$EUID" -ne 0 ]
     then
-    echo $GREEN"-= Background Stop =-"
+    echo $GREEN"Logs..."
   else
     echo "Do not run as root, don't use sudo or su"
     echo $RESET
