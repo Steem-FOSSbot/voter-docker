@@ -45,7 +45,8 @@ help() {
     echo $CYAN"    build   - (re)builds docker"
     echo $CYAN"    start   - starts Voter in docker container"
     echo $CYAN"    bgstart - starts Voter in docker container in background process"
-    echo $CYAN"    bgstop  - stops docker container if started with bgstart"
+    echo $CYAN"    bgstop  - stops docker container, use if started with bgstart"
+    echo $CYAN"    logs    - shows logs, use if started with bgstart"
     echo $RESET
     exit
 }
@@ -160,6 +161,7 @@ start() {
     echo $CYAN"Press ENTER to continue..."
     read -n 1
     echo $RESET
+    bgstop
     docker-compose up
 }
 
@@ -178,6 +180,7 @@ bgstart() {
       echo $RESET
       exit
     fi
+    bgstop
     echo $RESET
     nohup docker-compose up > /dev/null 2>&1 &
     echo
@@ -194,8 +197,27 @@ bgstop() {
       echo $RESET
       exit
     fi
-	echo $RED"bgstop command is not implemented yet!"
-  # TODO : shaunmza, can you figure this out?
+  echo $YELLOW"Stopping Voter docker..."
+  echo $RESET
+  docker stop voterdocker_node_1
+  docker stop voterdocker_redis_1
+  echo $GREEN"Stopped Voter docker"
+  echo $RESET
+}
+
+logs() {
+  if [ "$EUID" -ne 0 ]
+    then
+    echo $GREEN"-= Background Stop =-"
+  else
+    echo "Do not run as root, don't use sudo or su"
+    echo $RESET
+    exit
+  fi
+  echo $RESET
+  docker logs voterdocker_node_1
+  docker logs voterdocker_redis_1
+  echo $CYAN"--- end of logs"
   echo $RESET
 }
 
@@ -219,6 +241,9 @@ case $1 in
         ;;
     bgstop)
         bgstop
+        ;;
+    logs)
+        logs
         ;;
     *)
         echo "Invalid cmd"
