@@ -61,6 +61,7 @@ setup() {
       echo
       echo $YELLOW"To allow for automatic updating, please install git"
   else
+    git submodule init
     # if submodule repo already exists, make sure to stash any previous changes
     if [ -d "steem-fossbot-voter" ]; then
     	# check that user wants to continue to wipe any changes made to repo and update submodule
@@ -101,7 +102,6 @@ setup() {
     	# update everything
       git submodule update --remote
     else
-      git submodule init
       git submodule update --remote
     fi
   fi
