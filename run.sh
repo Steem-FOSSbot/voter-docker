@@ -63,6 +63,10 @@ setup() {
       echo $RESET
       exit
   fi
+  if ! dc_loc="$(type -p "docker-compose")" || [ -z "$dc_loc" ]; then
+    echo $RED"docker-compose is not installed"
+    echo $YELLOW"install docker-compose and then start again"
+  fi
   git submodule init
   # if submodule repo already exists, make sure to stash any previous changes
   if [ -d "steem-fossbot-voter" ]; then
@@ -115,7 +119,35 @@ setup() {
   cd ..
   echo $GREEN"Voter docker config finished!"
   echo
-  echo $CYAN"Please run ./run.sh build to create Docker deployment from set up files"
+  echo $CYAN"Do you want to build the Docker deployment now?"
+  while true; do
+    echo -n $CYAN"Build? (Y/n):"
+    read steemusername
+
+    if [[ -z "$steemusername" ]]
+    then
+      echo $RED"Please answer the question"
+      echo
+    else
+      if [[ $steemusername == "n" ]]
+      then
+        echo
+        echo $CYAN"Please run ./run.sh build to create Docker deployment from set up files"
+        break
+      fi
+      if [[ $steemusername == "Y" ]]
+      then
+        echo $RESET
+        echo $RESET
+        docker-compose build
+        echo $GREEN"Assuming no errors, Voter is now bulid as a Docker deployment"
+        echo $CYAN"Use the start or bgstart commands to start the container"
+        break
+      fi
+      echo $RED"Please answer the question"
+      echo
+    fi
+  done
   echo $RESET
 }
 
@@ -161,7 +193,8 @@ start() {
     echo $CYAN"Press ENTER to continue..."
     read -n 1
     echo $RESET
-    bgstop
+    docker stop voterdocker_node_1
+    docker stop voterdocker_redis_1
     docker-compose up
 }
 
@@ -180,8 +213,9 @@ bgstart() {
       echo $RESET
       exit
     fi
-    bgstop
     echo $RESET
+    docker stop voterdocker_node_1
+    docker stop voterdocker_redis_1
     nohup docker-compose up > /dev/null 2>&1 &
     echo
     echo $GREEN"Go to http://127.0.0.1:5000 with your browser to view the dashboard"
