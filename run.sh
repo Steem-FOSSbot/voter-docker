@@ -42,6 +42,7 @@ help() {
     echo $CYAN"Commands: "
     echo $CYAN"    setup   - first time set up"
     echo $YELLOW"            must run setup as root, e.g. with sudo"
+    echo $CYAN"    update  - update Voter code, keeping setup settings"
     echo $CYAN"    build   - (re)builds docker"
     echo $CYAN"    start   - starts Voter in docker container"
     echo $CYAN"    bgstart - starts Voter in docker container in background process"
@@ -58,14 +59,16 @@ setup() {
 	  exit
 	fi
 	if ! git_loc="$(type -p "git")" || [ -z "$git_loc" ]; then
-      echo $RED"git not available, setup cannot run!"
+      echo $RED"git not installed, setup cannot run!"
       echo $YELLOW"Please install git"
       echo $RESET
       exit
   fi
   if ! dc_loc="$(type -p "docker-compose")" || [ -z "$dc_loc" ]; then
-    echo $RED"docker-compose is not installed"
+    echo $RED"docker-compose is not installed, setup cannot run!"
     echo $YELLOW"install docker-compose and then start again"
+    echo $RESET
+    exit
   fi
   git submodule init
   # if submodule repo already exists, make sure to stash any previous changes
@@ -77,15 +80,15 @@ setup() {
   	echo
   	echo $YELLOW"For normal usage this is safe"
   	while true; do
-          echo -n $CYAN"Continue? (Y/n):"
-    	read steemusername
+      echo -n $CYAN"Continue? (Y/n):"
+    	read answer
 
-  		if [[ -z "$steemusername" ]]
+  		if [[ -z "$answer" ]]
           then
               echo $RED"Please answer the question"
               echo
           else
-  			if [[ $steemusername == "n" ]]
+  			if [[ $answer == "n" ]]
   			then
   				echo
   				echo $YELLOW"Please do something with your changes, such as stashing them,"
@@ -93,7 +96,7 @@ setup() {
           echo $RESET
   				exit
   			fi
-              if [[ $steemusername == "Y" ]]
+              if [[ $answer == "Y" ]]
               then
                   break
               fi
@@ -102,6 +105,11 @@ setup() {
   		fi
   	done
   	cd steem-fossbot-voter
+    echo $YELLOW
+    rm Dockerfile
+    rm bot.sh
+    rm crontab
+    echo $CYAN
   	git reset --hard
   	cd ..
   	echo $CYAN"steem-fossbot-voter submodule changes have been reset, if any"
@@ -119,7 +127,108 @@ setup() {
   cd ..
   echo $GREEN"Voter docker config finished!"
   echo
-  echo $CYAN"Do you want to build the Docker deployment now?"
+  echo $YELLOW"Do you want to build the Docker deployment now?"
+  while true; do
+    echo -n $CYAN"Build? (Y/n):"
+    read answer
+
+    if [[ -z "$answer" ]]
+    then
+      echo $RED"Please answer the question"
+      echo
+    else
+      if [[ $answer == "n" ]]
+      then
+        echo
+        echo $CYAN"Please run ./run.sh build to create Docker deployment from set up files"
+        break
+      fi
+      if [[ $answer == "Y" ]]
+      then
+        echo $RESET
+        echo $RESET
+        docker-compose build
+        echo $GREEN"Assuming no errors, Voter is now bulid as a Docker deployment"
+        echo $CYAN"Use the start or bgstart commands to start the container"
+        break
+      fi
+      echo $RED"Please answer the question"
+      echo
+    fi
+  done
+  echo $RESET
+}
+
+update() {
+  if [ "$EUID" -ne 0 ]
+    then echo $RED"Please run as root"
+    echo $RESET
+    exit
+  fi
+  if ! git_loc="$(type -p "git")" || [ -z "$git_loc" ]; then
+    echo $RED"git not installed, update cannot run!"
+    echo $YELLOW"Please install git"
+    echo $RESET
+    exit
+  fi
+  if ! dc_loc="$(type -p "docker-compose")" || [ -z "$dc_loc" ]; then
+    echo $RED"docker-compose is not installed, update cannot run!"
+    echo $YELLOW"install docker-compose and then start again"
+    echo $RESET
+    exit
+  fi
+  # check Voter code folder exists
+  if ! [ -d "steem-fossbot-voter" ]; then
+    echo $RED"steem-fossbot-voter is not initialized, update cannot run!"
+    echo $YELLOW"run ./run.sh setup instead"
+    echo $RESET
+    exit
+  fi
+  cd steem-fossbot-voter
+  # check files exist
+  if ! [ -e "Dockerfile" ]; then
+    echo $RED"steem-fossbot-voter integrety issue (missing Dockerfile), update cannot run!"
+    echo $YELLOW"run ./run.sh setup instead"
+    echo $RESET
+    exit
+  fi
+  if ! [ -e "bot.sh" ]; then
+    echo $RED"steem-fossbot-voter integrety issue (missing bot.sh), update cannot run!"
+    echo $YELLOW"run ./run.sh setup instead"
+    echo $RESET
+    exit
+  fi
+  if ! [ -e "crontab" ]; then
+    echo $RED"steem-fossbot-voter integrety issue (missing crontab), update cannot run!"
+    echo $YELLOW"run ./run.sh setup instead"
+    echo $RESET
+    exit
+  fi
+  # copy files
+  echo $CYAN"copying setup files..."
+  echo $RED
+  cp Dockerfile ../Dockerfile_temp
+  cp bot.sh ../bot_temp.sh
+  cp crontab ../crontab_temp
+  echo $YELLOW
+  rm Dockerfile
+  rm bot.sh
+  rm crontab
+  echo $CYAN"updating Voter code..."
+  git reset --hard
+  cd ..
+  git submodule init
+  git submodule update --remote
+  echo $CYAN"restoring setup files..."
+  cp Dockerfile_temp steem-fossbot-voter/Dockerfile
+  cp bot_temp.sh steem-fossbot-voter/bot.sh
+  cp crontab_temp steem-fossbot-voter/crontab
+  rm Dockerfile_temp
+  rm bot_temp.sh
+  rm crontab_temp
+  echo $GREEN"Voter docker update finished!"
+  echo
+  echo $YELLOW"Do you want to build the Docker deployment now?"
   while true; do
     echo -n $CYAN"Build? (Y/n):"
     read steemusername
@@ -263,6 +372,9 @@ fi
 case $1 in
     setup)
         setup
+        ;;
+    update)
+        update
         ;;
     build)
         build
